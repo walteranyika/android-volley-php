@@ -1,8 +1,14 @@
 package com.walter.androidphpmysql
 
+import android.app.ProgressDialog
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.Toast
 import com.android.volley.Request
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
@@ -13,7 +19,70 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val inputName: EditText = findViewById(R.id.inputName)
+        val inputEmail: EditText = findViewById(R.id.inputEmail)
+        val inputPhone: EditText = findViewById(R.id.inputPhone)
+        val inputAddress: EditText = findViewById(R.id.inputAddress)
+        val inputCity: EditText = findViewById(R.id.inputCity)
+        val inputCountry: EditText = findViewById(R.id.inputCountry)
+
+        val buttonSave: Button = findViewById(R.id.buttonSave)
+        val buttonShow: Button = findViewById(R.id.buttonFetch)
+
         val queue = Volley.newRequestQueue(this)
+        val url = "https://android.emobilis.ac.ke/insert.php"
+
+        buttonSave.setOnClickListener {
+            val name = inputName.text.toString().trim()
+            val email = inputEmail.text.toString().trim()
+            val phone = inputPhone.text.toString().trim()
+            val address = inputAddress.text.toString().trim()
+            val country = inputCountry.text.toString().trim()
+            val city = inputCity.text.toString().trim()
+            //regex
+            if (name.isNotEmpty() && email.isNotEmpty() && phone.isNotEmpty() && address.isNotEmpty() && country.isNotEmpty() && city.isNotEmpty()){
+               //save
+                val progressDialog = ProgressDialog(this)
+                progressDialog.setTitle("Saving...")
+                progressDialog.setMessage("Processing")
+                progressDialog.show()
+                val request = object : StringRequest(Method.POST, url, {
+                          //TODO use a bottomsheetdialog
+                          progressDialog.dismiss()
+                          Toast.makeText(this, "$it", Toast.LENGTH_SHORT).show()
+                          inputName.text.clear()
+                          inputEmail.text.clear()
+                          inputPhone.text.clear()
+                          inputAddress.text.clear()
+                }, {
+                    progressDialog.dismiss()
+                    Log.e("SAVING", "onCreate: ", it)
+                    Toast.makeText(this, "Error happened while saving user", Toast.LENGTH_SHORT).show()
+                }) {
+                    override fun getParams(): MutableMap<String, String>? {
+                        val map = HashMap<String, String>()
+                        map["name"] = name
+                        map["email"] = email
+                        map["phone"] = phone
+                        map["address"] = address
+                        map["country"] = country
+                        map["city"] = city
+                        return map
+                    }
+                }
+                queue.add(request)
+            }else
+            {
+                 Toast.makeText(this, "Fill in all the fields", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        buttonShow.setOnClickListener {
+            val intent = Intent(this, UsersActivity::class.java)
+            startActivity(intent)
+        }
+
+
         /*val url = "https://android.emobilis.ac.ke/fetch.php"
         val request = JsonObjectRequest(Request.Method.GET, url, null,
             { responseJson ->
@@ -54,7 +123,6 @@ class MainActivity : AppCompatActivity() {
                  Log.e("WEATHER", "onCreate: Error while fetching weather data", error)
              })
          queue.add(weatherRequest)*/
-
         /*val url = "https://689f-154-123-49-149.ngrok.io/insert.php"
         val createUserRequest = object : StringRequest(Method.POST, url, { response ->
             Log.d("SAVING", "onCreate: $response")
@@ -76,5 +144,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
         queue.add(createUserRequest)*/
+        //add user
+        //fetch
     }
+
+
 }
